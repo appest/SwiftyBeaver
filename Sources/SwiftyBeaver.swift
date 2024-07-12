@@ -12,9 +12,9 @@ import Foundation
 open class SwiftyBeaver {
 
     /// version string of framework
-    public static let version = "1.9.4" // UPDATE ON RELEASE!
+    public static let version = "2.1.1"  // UPDATE ON RELEASE!
     /// build number of framework
-    public static let build = 1950 // version 1.6.2 -> 1620, UPDATE ON RELEASE!
+    public static let build = 2110 // version 1.6.2 -> 1620, UPDATE ON RELEASE!
 
     public enum Level: Int {
         case verbose = 0
@@ -22,10 +22,17 @@ open class SwiftyBeaver {
         case info = 2
         case warning = 3
         case error = 4
+        case critical = 5
+        case fault = 6
     }
 
     // a set of active destinations
     public private(set) static var destinations = Set<BaseDestination>()
+    
+    /// A private queue for synchronizing access to `destinations`.
+    /// Read accesses are done concurrently.
+    /// Write accesses are done with a barrier, ensuring only 1 operation is ran at that time.
+    private static let queue = DispatchQueue(label: "destination queue", attributes: .concurrent)
 
     /// A private queue for synchronizing access to `destinations`.
     /// Read accesses are done concurrently.
@@ -74,7 +81,7 @@ open class SwiftyBeaver {
     }
 
     /// returns the current thread name
-    class func threadName() -> String {
+    open class func threadName() -> String {
 
         #if os(Linux)
         // on 9/30/2016 not yet implemented in server-side Swift:
@@ -237,6 +244,26 @@ open class SwiftyBeaver {
         )
         #endif
     }
+    
+    /// log something which will keep you awake at night (highest priority)
+    open class func critical(_ message: @autoclosure () -> Any,
+                             file: String = #file, function: String = #function, line: Int = #line, context: Any? = nil) {
+        #if swift(>=5)
+        custom(level: .critical, message: message(), file: file, function: function, line: line, context: context)
+        #else
+        custom(level: .critical, message: message, file: file, function: function, line: line, context: context)
+        #endif
+    }
+    
+    /// log something which will keep you awake at night (highest priority)
+    open class func fault(_ message: @autoclosure () -> Any,
+                          file: String = #file, function: String = #function, line: Int = #line, context: Any? = nil) {
+        #if swift(>=5)
+        custom(level: .fault, message: message(), file: file, function: function, line: line, context: context)
+        #else
+        custom(level: .fault, message: message, file: file, function: function, line: line, context: context)
+        #endif
+    }
 
     /// custom logging to manually adjust values, should just be used by other frameworks
     open class func custom(
@@ -329,30 +356,30 @@ open class SwiftyBeaver {
         }
     }
 
-    /**
-     DEPRECATED & NEEDS COMPLETE REWRITE DUE TO SWIFT 3 AND GENERAL INCORRECT LOGIC
-     Flush all destinations to make sure all logging messages have been written out
-     Returns after all messages flushed or timeout seconds
-
-     - returns: true if all messages flushed, false if timeout or error occurred
-     */
+    /// flush all destinations to make sure all logging messages have been written out
+    /// returns after all messages flushed or timeout seconds
+    /// returns: true if all messages flushed, false if timeout or error occurred
     public class func flush(secondTimeout: Int64) -> Bool {
-
-        /*
-         guard let grp = dispatch_group_create() else { return false }
-         for dest in destinations {
-             if let queue = dest.queue {
-                 dispatch_group_enter(grp)
-                 queue.asynchronously(execute: {
-                     dest.flush()
-                     grp.leave()
-                 })
-             }
-         }
-         let waitUntil = DispatchTime.now(dispatch_time_t(DISPATCH_TIME_NOW), secondTimeout * 1000000000)
-         return dispatch_group_wait(grp, waitUntil) == 0
-          */
-        return true
+        let grp = DispatchGroup()
+        let destinations = queue.sync { self.destinations }
+        for dest in destinations {
+            guard let queue = dest.queue else {
+                continue
+            }
+            grp.enter()
+            if dest.asynchronously {
+                queue.async {
+                    dest.flush()
+                    grp.leave()
+                }
+            } else {
+                queue.sync {
+                    dest.flush()
+                    grp.leave()
+                }
+            }
+        }
+        return grp.wait(timeout: .now() + .seconds(Int(secondTimeout))) == .success
     }
 
     /// removes the parameters from a function because it looks weird with a single param

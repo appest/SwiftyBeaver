@@ -3,7 +3,73 @@
 All notable changes to this project will be documented in this file following the style described at [Keep a Changelog](http://keepachangelog.com) by [@olivierlacan](https://github.com/olivierlacan).
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-----
+---
+<br/>
+
+## 2.1.1 (2024-05-20)
+
+##### Changed
+- Default console logging from OSLog API to print by [@WillSuo-Github](https://github.com/WillSuo-Github)
+- NSPrivacyTracking from true to false by [@iLiuChang](https://github.com/iLiuChang)
+
+
+##### Fixed
+- Console color comments by [@richardtop](https://github.com/richardtop)
+
+<br/>
+
+## 2.1.0 (2024-04-22)
+
+##### Added
+- Support for OSLog API plus 2 new levels by [@WillSuo-Github](https://github.com/WillSuo-Github)
+
+<br/>
+
+## 2.0.2 (2024-04-22)
+
+##### Added
+- Privacy Manifest to Cocoapods file by [@lixiang1994](https://github.com/lixiang1994)
+
+<br/>
+
+## 2.0.1 (2024-04-15)
+
+##### Added
+- Privacy Manifest by [@skreutzberger](https://github.com/skreutzberger)
+- Old log files have same extension by [@emixb](https://github.com/emixb)
+- Improved README by [@jsimonlane](https://github.com/jsimonlane)
+
+##### Fixed
+- README typos by [@Maartz](https://github.com/Maartz)
+
+<br/>
+
+## 2.0.0 (2023-03-03)
+
+##### Fixed
+- Race condition in access to destinations by [@remy-bardou-lifeonair](https://github.com/remy-bardou-lifeonair)
+- Project CI (Github Actions, CircleCI, macOS Tests) by [@lgaches](https://github.com/lgaches)
+- README inconsistencies by [@lmarceau](https://github.com/lmarceau)
+
+##### Removed
+- SBPlatformDestination and AES256CBC by [@skreutzberger](https://github.com/skreutzberger)
+- Remove anonymous parameters on file and function by [@lordzsolt](https://github.com/lordzsolt)
+
+
+<br/>
+
+## 1.9.6 (2022-04-13)
+
+##### Added
+- Ability to customize the thread name by [@adamwulf](https://github.com/adamwulf)
+- Ability to customize the used calendar by [@tatsuz0u](https://github.com/tatsuz0u)
+- Ability to subclass destinations by [@FelixLisczyk](https://github.com/FelixLisczyk)
+- Flush functionality for Swift 5 by [@VasilyKrainov](https://github.com/VasilyKrainov)
+
+##### Fixed
+- Potential issue when a file could not be written by [@mumuWorld](https://github.com/mumuWorld)
+
+
 <br/>
 
 ## 1.9.5 (2021-05-18)
